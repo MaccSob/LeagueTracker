@@ -38,3 +38,31 @@ if __name__ == "__main__":
     puuid = get_puuid("JamieFraser", "Adso")
     print(get_match_ids(puuid, count=5))
 
+
+def get_match(match_id: str) -> dict:
+    url = (
+        f"https://{REGION}.api.riotgames.com/lol/match/v5/matches/{match_id}"
+    )
+    response = requests.get(url, headers={"X-Riot-Token": API_KEY})
+    response.raise_for_status()
+    return response.json()
+
+
+if __name__ == "__main__":
+    puuid = get_puuid("JamieFraser", "Adso")
+    match_ids = get_match_ids(puuid, count=10)
+    match = get_match(match_ids[0])
+    print(match.keys())
+    info = match["info"]
+    print(info.keys())
+    print(len(info["participants"]))
+    print(info["participants"][0].keys())
+
+
+def find_player(match: dict, puuid: str) -> dict:
+    for player in match["info"]["participants"]:
+        if player["puuid"] == puuid:
+            return player
+
+me = find_player(match, puuid)
+print(me["championName"], me["teamPosition"], me["win"])
