@@ -64,5 +64,24 @@ def find_player(match: dict, puuid: str) -> dict:
         if player["puuid"] == puuid:
             return player
 
-me = find_player(match, puuid)
-print(me["championName"], me["teamPosition"], me["win"])
+    me = find_player(match, puuid)
+    print(me["championName"], me["teamPosition"], me["win"])
+
+
+
+def extract_stats(match: dict, puuid: str) -> dict:
+    me = find_player(match, puuid)
+    return {
+        "match_id": match["metadata"]["matchId"],
+        "champion": me["championName"],
+        "role": me["role"],
+        "win": me["win"],
+        "kills": me["kills"],
+        "deaths": me["deaths"],
+        "assists": me["assists"],
+        "duration_s": match["info"]["gameDuration"],
+        "played_at": match["info"]["gameCreation"]
+    }
+
+
+print(extract_stats(match, puuid))
