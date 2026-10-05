@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from datetime import datetime,timezone
 
 
 load_dotenv()
@@ -54,9 +55,6 @@ if __name__ == "__main__":
     match = get_match(match_ids[0])
     print(match.keys())
     info = match["info"]
-    print(info.keys())
-    print(len(info["participants"]))
-    print(info["participants"][0].keys())
 
 
 def find_player(match: dict, puuid: str) -> dict:
@@ -80,7 +78,7 @@ def extract_stats(match: dict, puuid: str) -> dict:
         "deaths": me["deaths"],
         "assists": me["assists"],
         "duration_s": match["info"]["gameDuration"],
-        "played_at": match["info"]["gameCreation"]
+        "played_at": datetime.fromtimestamp(match["info"]["gameCreation"]/1000, tz=timezone.utc)
     }
 
 
