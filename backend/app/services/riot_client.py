@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
 def get_match_ids(puuid: str, count: int=20) -> list[str]:
     url = (
-        f"https://{REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?queue=420&start=0&{count}=20"
+        f"https://{REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids?queue=420&start=0&{count}={count}"
     )
     response = requests.get(url, headers={"X-Riot-Token": API_KEY})
     response.raise_for_status()
@@ -62,8 +62,6 @@ def find_player(match: dict, puuid: str) -> dict:
         if player["puuid"] == puuid:
             return player
 
-    me = find_player(match, puuid)
-    print(me["championName"], me["teamPosition"], me["win"])
 
 
 
@@ -81,5 +79,8 @@ def extract_stats(match: dict, puuid: str) -> dict:
         "played_at": datetime.fromtimestamp(match["info"]["gameCreation"]/1000, tz=timezone.utc)
     }
 
-
-print(extract_stats(match, puuid))
+if __name__ == "__main":
+    puuid = get_puuid("JamieFraser", "Adso")
+    match_ids = get_match_ids(puuid, count=1)
+    match = get_match(match_ids[0])
+    print(extract_stats(match, puuid))

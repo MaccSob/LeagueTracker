@@ -21,6 +21,26 @@ def create_tables():
  played_at TIMESTAMPTZ NOT NULL ) """)
 
 
+def save_match(stats: dict) -> None:
+     with get_connection() as conn:
+          conn.execute(
+               """
+               INSERT INTO MATCHES (match_id, champion,role,win,kills,deaths,assists,duration_s,played_at)
+               VALUES (%(match_id)s, %(champion)s, %(role)s,%(win)s,%(kills)s,%(deaths)s,%(assists)s,%(duration_s)s,%(played_at)s)
+               ON CONFLICT (match_id) DO NOTHING
+               """,
+               stats,
+          )
+def match_exists(match_id) -> bool:
+     with get_connection() as conn:
+          row = conn.execute(
+               "SELECT 1 FROM matches WHERE match_id = %(match_id)s",{"match_id": match_id},).fetchone()
+          print("ROW:", row)
+          return row is not None
+        
+      
+
+
 if __name__ == "__main__":
         create_tables()
         print("Table is ready.")
