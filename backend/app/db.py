@@ -35,7 +35,6 @@ def match_exists(match_id) -> bool:
      with get_connection() as conn:
           row = conn.execute(
                "SELECT 1 FROM matches WHERE match_id = %(match_id)s",{"match_id": match_id},).fetchone()
-          print("ROW:", row)
           return row is not None
         
       

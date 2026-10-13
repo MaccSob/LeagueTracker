@@ -11,5 +11,5 @@ print("Saved", stats["match_id"])
 
 print(match_exists("EUW1_8004962271"))
 print(match_exists("EUN1_0"))
-puuid(get_puiid("JamieFraser", "Adso"))
+puuid = get_puuid("JamieFraser", "Adso")
 print(sync_matches(puuid, count=5))
