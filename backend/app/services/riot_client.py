@@ -16,7 +16,7 @@ def get_puuid(game_name: str, tag_line: str) -> str:
         f"https://{REGION}.api.riotgames.com"
         f"/riot/account/v1/accounts/by-riot-id/{game_name}/{tag_line}"
     )
-    return riot_get(url)
+    return riot_get(url)["puuid"]
 
 
 
