@@ -21,7 +21,7 @@ def get_puuid(game_name: str, tag_line: str) -> str:
 
 
 if __name__ == "__main__":
-    print(get_puuid("JamieFraser", "Adso"))
+    print(get_puuid("papi", "bd01"))
 
 
 def get_match_ids(puuid: str, count: int=20) -> list[str]:
@@ -32,7 +32,7 @@ def get_match_ids(puuid: str, count: int=20) -> list[str]:
 
 
 if __name__ == "__main__":
-    puuid = get_puuid("JamieFraser", "Adso")
+    puuid = get_puuid("papi", "bd01")
     print(get_match_ids(puuid, count=5))
 
 
@@ -44,7 +44,7 @@ def get_match(match_id: str) -> dict:
 
 
 if __name__ == "__main__":
-    puuid = get_puuid("JamieFraser", "Adso")
+    puuid = get_puuid("papi", "bd01")
     match_ids = get_match_ids(puuid, count=10)
     match = get_match(match_ids[0])
     print(match.keys())
@@ -83,7 +83,7 @@ def extract_stats(match: dict, puuid: str) -> dict:
     }
 
 if __name__ == "__main":
-    puuid = get_puuid("JamieFraser", "Adso")
+    puuid = get_puuid("papi", "bd01")
     match_ids = get_match_ids(puuid, count=1)
     match = get_match(match_ids[0])
     print(extract_stats(match, puuid))
