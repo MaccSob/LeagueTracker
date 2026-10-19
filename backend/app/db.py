@@ -35,6 +35,19 @@ ORDER BY games DESC;
           """).fetchall()
           return rows
 
+def get_champion_stats_role() -> list[dict]:
+     with get_connection() as conn:
+          rows = conn.execute(""" SELECT
+    role,
+    count(*) AS games,
+    count(*) FILTER (WHERE win) AS wins,
+    ROUND(100.0 * count(*) FILTER (WHERE win) / count(*), 1)::float AS winrate
+FROM matches
+GROUP BY role
+ORDER BY games DESC;
+          """).fetchall()
+          return rows
+
 def save_match(stats: dict) -> None:
      with get_connection() as conn:
           conn.execute(

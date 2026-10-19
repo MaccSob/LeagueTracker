@@ -73,7 +73,7 @@ def extract_stats(match: dict, puuid: str) -> dict:
     return {
         "match_id": match["metadata"]["matchId"],
         "champion": me["championName"],
-        "role": me["role"],
+        "role": me["teamPosition"],
         "win": me["win"],
         "kills": me["kills"],
         "deaths": me["deaths"],
