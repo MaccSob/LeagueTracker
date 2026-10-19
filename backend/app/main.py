@@ -1,8 +1,14 @@
 from fastapi import FastAPI
 from backend.app.db import get_champion_stats, get_champion_stats_role, get_rolling_winrate
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="LOL Performance Tracker")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["GET"],
+)
 
 @app.get("/test")
 def test():
