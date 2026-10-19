@@ -1,7 +1,7 @@
 from backend.app.services.riot_client import get_puuid,get_match_ids,get_match,extract_stats
 from backend.app.db import save_match, match_exists
 
-def sync_matches(puuid: str, count: int = 20) -> int:
+def sync_matches(puuid: str, count: int = 100) -> int:
     saved = 0
     for match_id in get_match_ids(puuid, count):
         if(match_exists(match_id)):

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from backend.app.db import get_champion_stats, get_champion_stats_role
+from backend.app.db import get_champion_stats, get_champion_stats_role, get_rolling_winrate
 
 app = FastAPI(title="LOL Performance Tracker")
 
@@ -16,3 +16,7 @@ def get_stats():
 @app.get("/stats/role")
 def get_stats():
     return get_champion_stats_role()
+
+@app.get("/stats/rolling")
+def get_stats():
+    return get_rolling_winrate()

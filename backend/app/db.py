@@ -48,6 +48,20 @@ ORDER BY games DESC;
           """).fetchall()
           return rows
 
+def get_rolling_winrate() -> list[dict]:
+     with get_connection() as conn:
+          rows = conn.execute(""" SELECT
+    played_at,
+    win,
+    ROUND(100.0 * AVG(win::int) OVER (
+        ORDER BY played_at
+        ROWS BETWEEN 50 PRECEDING AND CURRENT ROW), 1)::float AS rolling_winrate
+
+FROM matches
+ORDER BY played_at;
+          """).fetchall()
+          return rows
+
 def save_match(stats: dict) -> None:
      with get_connection() as conn:
           conn.execute(
