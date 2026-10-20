@@ -24,7 +24,11 @@ function App() {
   [])
   return (
     <>
+    <section className='card'>
     <table>
+      <thead>
+        <tr><th>Champion</th><th>Games</th><th>Wins</th><th>Winrate</th></tr>
+      </thead>
       <tbody>
         {champions.map(row => (
           <tr key={row.champion}>
@@ -42,12 +46,14 @@ function App() {
       <BarChart data={champions.filter(row => row.games >= 2).slice(0, 10)}>
         <XAxis dataKey="champion"/>
             <Tooltip/>
-            <Bar dataKey="winrate"/>
-            <Bar dataKey="games"/>
+            <Bar dataKey="winrate" fill='#4f7cff'/>
+            <Bar dataKey="games" fill='#4f7cff'/>
       </BarChart>
     </ResponsiveContainer>
+</section>
 
- <h2>Rolling winrate</h2>
+    <section className='card'>
+ <h2>Winrate changing throughout games</h2>
         <ResponsiveContainer width="100%" height={300}>
       <LineChart data={rollingWithNo}>
         <XAxis dataKey="game"/>
@@ -56,17 +62,24 @@ function App() {
             <Line dataKey="rolling_winrate"/>
       </LineChart>
     </ResponsiveContainer>
+    <p>Amount of matches</p>
+</section>
+
+    <section className='card'>
 
         <h2>Winrate per role</h2>
         <ResponsiveContainer width="100%" height={300}>
       <BarChart data={roles}>
         <XAxis dataKey="role"/>
-          <YAxis/>
+          <YAxis />
             <Tooltip/>
             <Bar dataKey="winrate"/>
             <Bar dataKey="wins"/>
       </BarChart>
     </ResponsiveContainer>
+
+</section>
+
     </>
   )
 }
