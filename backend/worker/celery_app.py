@@ -1,8 +1,10 @@
 from celery import Celery
+import os
+
 
 app = Celery(
     "worker",
-    broker="redis://localhost:6379/0",
+    broker=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
     include=["backend.worker.tasks"],
 )
 
@@ -10,6 +12,6 @@ app = Celery(
 app.conf.beat_schedule = {
     "sync-matches": {
         "task": "sync_new_matches",
-        "schedule": 60,
+        "schedule": 21600,
     },
 }
