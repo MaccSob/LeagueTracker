@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "..."
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check that the backend imports
+        env:
+          RIOT_API_KEYy: dummy
+        run: python -c "from backend.app.main import app as api; from backend.worker.celery_app import app as worker; print('imports ok')"
