@@ -6,7 +6,8 @@ import './App.css'
 function App() {
   const [champions, setChampions] = useState([])
   const [roles, setRoles] = useState([])
-    const [rolling, setRolling] = useState([])
+  const [rolling, setRolling] = useState([])
+  const [hours, setHours] = useState([])
     
     const rollingWithNo = rolling.map((row, i ) => ({...row, game: i + 1}))
 
@@ -22,6 +23,11 @@ function App() {
     fetch("http://localhost:8000/stats/rolling").then (r => r.json()).then(setRolling)},
 
   [])
+    useEffect(() => {
+    fetch("http://localhost:8000/stats/hours").then (r => r.json()).then(setHours)},
+
+  [])
+
   return (
     <>
     <section className='card'>
@@ -79,6 +85,22 @@ function App() {
     </ResponsiveContainer>
 
 </section>
+
+ 
+
+        <h2>Winrate per hour</h2>
+        <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={hours}>
+        <XAxis dataKey="hour"/>
+          <YAxis />
+            <Tooltip/>
+            <Bar dataKey="winrate"/>
+            <Bar dataKey="wins"/>
+      </BarChart>
+    </ResponsiveContainer>
+
+
+
 
     </>
   )

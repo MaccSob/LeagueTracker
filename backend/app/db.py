@@ -9,8 +9,8 @@ load_dotenv()
 
 def get_connection():
     return psycopg.connect(
-        host=os.getnv("POSTGRES_HOST","localhost"),
-        port=int(os.getnv("POSTGRES_PORT","5433")),
+        host=os.getenv("POSTGRES_HOST","localhost"),
+        port=int(os.getenv("POSTGRES_PORT","5433")),
         dbname=os.getenv("POSTGRES_DB"),
         user=os.getenv("POSTGRES_USER"),
         password=os.getenv("POSTGRES_PASSWORD"),
@@ -47,6 +47,20 @@ GROUP BY role
 ORDER BY games DESC;
           """).fetchall()
           return rows
+
+def get_hour_stats() -> list[dict]:
+     with get_connection() as conn:
+          rows = conn.execute("""SELECT 
+    EXTRACT(HOUR FROM played_At AT TIME ZONE 'Europe/Warsaw')::int AS hour,
+    count(*) as games,
+    count(*) FILTER (WHERE win) AS wins,
+    ROUND(100.0 * count(*) FILTER (WHERE win) / count(*), 1)::float AS winrate
+    FROM matches
+GROUP BY hour
+HAVING count(*) >= 2 ORDER BY hour;
+          """).fetchall()
+          return rows
+     
 
 def get_rolling_winrate() -> list[dict]:
      with get_connection() as conn:
