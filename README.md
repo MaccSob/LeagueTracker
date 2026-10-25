@@ -8,66 +8,61 @@ In-client stats and sites like OP.GG only show generic aggregates. This project 
 
 - Does my winrate actually drop after a losing streak, or does it just feel that way?
 - Which champions and roles are genuinely carrying my rank right now, not just "feel" strong?
-- Does session length or time of day actually affect how I perform?
+- Does the time of day affect how I perform?
 
 ## Features
 
-- Automatic background sync of new ranked matches — no manual refresh, a scheduled worker pulls new games on its own
+- Automatic background sync of new ranked solo/duo matches: a scheduled worker pulls new games on its own, no manual refresh
+- Idempotent ingestion: already stored matches are skipped, so there is no duplicate data and no wasted API calls
+- Riot API client with rate-limit handling (retries on HTTP 429 using `Retry-After`)
 - Per-champion and per-role winrate breakdown
-- Rolling-window stats (moving average winrate over the last 20 games)
-- Session-based analysis (performance by time of day, session length)
+- Rolling-window stats (moving average winrate over the last 50 games)
+- Time-of-day analysis (winrate per hour, in local time)
 - Interactive dashboard with charts
+- CI pipeline (GitHub Actions)
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A[Celery Beat<br/>scheduler] -->|triggers every N min| B[Celery Worker]
+    A[Celery Beat<br/>scheduler] -->|every N hours| R[(Redis<br/>broker)]
+    R --> B[Celery Worker]
     B -->|fetch new matches| C[Riot Games API<br/>MATCH-V5]
-    B -->|store raw + processed data| D[(PostgreSQL)]
-    B -->|cache computed stats| E[(Redis)]
-    F[FastAPI backend] -->|read| D
-    F -->|read/write cache| E
+    B -->|store processed match data| D[(PostgreSQL)]
+    F[FastAPI backend] -->|stats queries| D
     G[React dashboard] -->|REST calls| F
 ```
 
-A scheduled worker (Celery, triggered by Celery Beat) periodically pulls new ranked matches from the Riot API and writes them to PostgreSQL. Redis serves as both the Celery broker and a cache layer for expensive aggregate queries. FastAPI exposes REST endpoints on top of that data, and a React dashboard renders it as charts.
+Celery Beat periodically queues a sync task in Redis. The worker picks it up, pulls new ranked matches from the Riot API and writes them to PostgreSQL. FastAPI exposes REST endpoints with aggregate statistics computed in SQL (including window functions for the rolling winrate), and a React dashboard renders them as charts.
 
 ## Tech stack
 
 | Layer | Technology |
 |---|---|
 | Backend | FastAPI (Python 3.12) |
-| Database | PostgreSQL |
+| Database | PostgreSQL (psycopg 3) |
 | Task queue / scheduling | Celery + Redis |
-| Frontend | React, Recharts |
-| Containerization | Docker, docker-compose |
-| Infrastructure as Code | Terraform |
-| Cloud | AWS (RDS, ECS, S3, CloudWatch) |
-| CI/CD | GitHub Actions |
+| Frontend | React (Vite), Recharts |
+| Containerization | Docker, Docker Compose |
+| CI | GitHub Actions |
 | Data source | Riot Games API (MATCH-V5) |
 
 ## Project structure
 
 ```
-lol-performance-tracker/
+LeagueTracker/
 ├── backend/
 │   ├── app/
-│   │   ├── api/            # FastAPI routes
-│   │   ├── models/         # SQLAlchemy models
-│   │   ├── services/       # Riot API client, stats calculations
-│   │   └── main.py
+│   │   ├── services/       # Riot API client, match sync
+│   │   ├── db.py           # PostgreSQL access + stats queries
+│   │   └── main.py         # FastAPI app
 │   ├── worker/
-│   │   ├── tasks.py        # Celery tasks (match sync)
-│   │   └── celery_app.py
+│   │   ├── celery_app.py   # Celery app + beat schedule
+│   │   └── tasks.py        # Scheduled match sync task
+│   ├── Dockerfile
 │   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   └── pages/
-│   └── package.json
-├── infra/
-│   └── terraform/           # AWS resources (RDS, ECS, S3, CloudWatch)
+├── frontend/               # React + Recharts dashboard
+├── .github/workflows/      # CI
 ├── docker-compose.yml
 └── README.md
 ```
@@ -75,30 +70,47 @@ lol-performance-tracker/
 ## Getting started (local development)
 
 1. Clone the repo and copy `.env.example` to `.env`.
-2. Add your Riot API key to `.env` (`RIOT_API_KEY=...`), get one from the [Riot Developer Portal](https://developer.riotgames.com/).
-3. Run everything with Docker Compose:
+2. Fill in `.env`: your Riot API key (get one from the [Riot Developer Portal](https://developer.riotgames.com/)), your Riot ID (`RIOT_GAME_NAME`, `RIOT_TAG_LINE`) and the Postgres credentials.
+3. Start the backend stack (Postgres, Redis, API, worker, scheduler):
    ```bash
-   docker-compose up --build
+   docker compose up -d --build
    ```
-4. Backend available at `http://localhost:8000`, frontend at `http://localhost:3000`.
+4. Start the dashboard:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+5. API docs are available at `http://localhost:8000/docs`, the dashboard at `http://localhost:5173`.
+
+## API endpoints
+
+| Endpoint | Description |
+|---|---|
+| `GET /health` | Health check |
+| `GET /stats/champions` | Games, wins and winrate per champion |
+| `GET /stats/roles` | Games, wins and winrate per role |
+| `GET /stats/rolling` | Rolling winrate over the last 50 games |
+| `GET /stats/hours` | Games, wins and winrate per hour of day |
 
 ## Known limitations
 
-- Riot's free development API key expires every 24 hours and has to be refreshed manually from the developer portal. A production key removes this limit but requires an approved application.
+- Riot's free development API key expires every 24 hours and has to be refreshed manually from the developer portal. After it expires the sync worker gets HTTP 403 until the key is replaced in `.env` and the containers are restarted. A production key removes this limit but requires an approved application.
 - Currently scoped to a single summoner/account (personal tool, not multi-user).
+- Statistics for champions and hours with only a few games are not meaningful; the rolling winrate is only fully populated once enough matches are stored.
 
 ## Project status
 
-🚧 In active development.
-
-- [ ] Riot API client + match ingestion
-- [ ] Database schema and models
-- [ ] Celery worker + scheduled sync
-- [ ] FastAPI endpoints
-- [ ] React dashboard
-- [ ] Dockerized local setup
-- [ ] Terraform AWS deployment
-- [ ] CI/CD pipeline
+- [x] Riot API client + match ingestion
+- [x] Database schema
+- [x] Celery worker + scheduled sync
+- [x] FastAPI endpoints
+- [x] React dashboard
+- [x] Dockerized backend, worker and scheduler
+- [x] Time-of-day analysis
+- [x] CI pipeline
+- [ ] Session length analysis
+- [ ] Cloud deployment
 
 ## License
 
