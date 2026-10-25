@@ -109,8 +109,8 @@ LeagueTracker/
 - [x] Dockerized backend, worker and scheduler
 - [x] Time-of-day analysis
 - [x] CI pipeline
-- [ ] Session length analysis
-- [ ] Cloud deployment
+- [x] Session length analysis
+- [ ] Cloud deployment (would have to pay, not planned)
 
 ## License
 
